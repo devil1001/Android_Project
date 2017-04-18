@@ -2,6 +2,7 @@ package com.example.devil1001.android_project_translate.Views;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -52,42 +53,89 @@ public class HistoryFragment extends Fragment {
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(wAdapter);
         wordsDbHelper = WordsDbHelper.getInstance(getActivity());
-        showDB();
+        //showDB();
+        new ShowDb().execute();
     }
 
-    public void showDB() {
-        SQLiteDatabase db = wordsDbHelper.getReadableDatabase();
-        String[] projection = {
-                WordsContract.WordEntry._ID,
-                WordsContract.WordEntry.COLUMN_WORD,
-                WordsContract.WordEntry.COLUMN_TRANSLATED,
-                WordsContract.WordEntry.COLUMN_DIRECTION,
-                WordsContract.WordEntry.COLUMN_FAVOURITE};
+//    public void showDB() {
+//        SQLiteDatabase db = wordsDbHelper.getReadableDatabase();
+//        String[] projection = {
+//                WordsContract.WordEntry._ID,
+//                WordsContract.WordEntry.COLUMN_WORD,
+//                WordsContract.WordEntry.COLUMN_TRANSLATED,
+//                WordsContract.WordEntry.COLUMN_DIRECTION,
+//                WordsContract.WordEntry.COLUMN_FAVOURITE};
+//
+//        Cursor cursor = db.query(
+//                WordsContract.WordEntry.TABLE_NAME,   // таблица
+//                projection,            // столбцы
+//                null,                  // столбцы для условия WHERE
+//                null,                  // значения для условия WHERE
+//                null,                  // Don't group the rows
+//                null,                  // Don't filter by row groups
+//                WordsContract.WordEntry._ID + " DESC");                   // порядок сортировки
+//
+//        int idColumnIndex = cursor.getColumnIndex(WordsContract.WordEntry._ID);
+//        int wordColumnIndex = cursor.getColumnIndex(WordsContract.WordEntry.COLUMN_WORD);
+//        int translatedColumnIndex = cursor.getColumnIndex(WordsContract.WordEntry.COLUMN_TRANSLATED);
+//        int dirColumnIndex = cursor.getColumnIndex(WordsContract.WordEntry.COLUMN_DIRECTION);
+//        int favColumnIndex = cursor.getColumnIndex(WordsContract.WordEntry.COLUMN_FAVOURITE);
+//
+//        while (cursor.moveToNext()) {
+//            int currentID = cursor.getInt(idColumnIndex);
+//            String currentWord = cursor.getString(wordColumnIndex);
+//            String currentTranslate = cursor.getString(translatedColumnIndex);
+//            String currentDir = cursor.getString(dirColumnIndex);
+//            int currentFav = cursor.getInt(favColumnIndex);
+//            wordsList.add(new TranslatedWord(currentWord, currentTranslate, currentDir));
+//        }
+//        cursor.close();
+//        wAdapter.notifyDataSetChanged();
+//    }
 
-        Cursor cursor = db.query(
-                WordsContract.WordEntry.TABLE_NAME,   // таблица
-                projection,            // столбцы
-                null,                  // столбцы для условия WHERE
-                null,                  // значения для условия WHERE
-                null,                  // Don't group the rows
-                null,                  // Don't filter by row groups
-                WordsContract.WordEntry._ID + " DESC");                   // порядок сортировки
+    private class ShowDb extends AsyncTask<Void, Void, Void>{
 
-        int idColumnIndex = cursor.getColumnIndex(WordsContract.WordEntry._ID);
-        int wordColumnIndex = cursor.getColumnIndex(WordsContract.WordEntry.COLUMN_WORD);
-        int translatedColumnIndex = cursor.getColumnIndex(WordsContract.WordEntry.COLUMN_TRANSLATED);
-        int dirColumnIndex = cursor.getColumnIndex(WordsContract.WordEntry.COLUMN_DIRECTION);
-        int favColumnIndex = cursor.getColumnIndex(WordsContract.WordEntry.COLUMN_FAVOURITE);
+        @Override
+        protected Void doInBackground(Void... voids) {
+            SQLiteDatabase db = wordsDbHelper.getReadableDatabase();
+            String[] projection = {
+                    WordsContract.WordEntry._ID,
+                    WordsContract.WordEntry.COLUMN_WORD,
+                    WordsContract.WordEntry.COLUMN_TRANSLATED,
+                    WordsContract.WordEntry.COLUMN_DIRECTION,
+                    WordsContract.WordEntry.COLUMN_FAVOURITE};
 
-        while (cursor.moveToNext()) {
-            int currentID = cursor.getInt(idColumnIndex);
-            String currentWord = cursor.getString(wordColumnIndex);
-            String currentTranslate = cursor.getString(translatedColumnIndex);
-            String currentDir = cursor.getString(dirColumnIndex);
-            int currentFav = cursor.getInt(favColumnIndex);
-            wordsList.add(new TranslatedWord(currentWord, currentTranslate, currentDir));
+            Cursor cursor = db.query(
+                    WordsContract.WordEntry.TABLE_NAME,   // таблица
+                    projection,            // столбцы
+                    null,                  // столбцы для условия WHERE
+                    null,                  // значения для условия WHERE
+                    null,                  // Don't group the rows
+                    null,                  // Don't filter by row groups
+                    WordsContract.WordEntry._ID + " DESC");                   // порядок сортировки
+
+            int idColumnIndex = cursor.getColumnIndex(WordsContract.WordEntry._ID);
+            int wordColumnIndex = cursor.getColumnIndex(WordsContract.WordEntry.COLUMN_WORD);
+            int translatedColumnIndex = cursor.getColumnIndex(WordsContract.WordEntry.COLUMN_TRANSLATED);
+            int dirColumnIndex = cursor.getColumnIndex(WordsContract.WordEntry.COLUMN_DIRECTION);
+            int favColumnIndex = cursor.getColumnIndex(WordsContract.WordEntry.COLUMN_FAVOURITE);
+
+            while (cursor.moveToNext()) {
+                int currentID = cursor.getInt(idColumnIndex);
+                String currentWord = cursor.getString(wordColumnIndex);
+                String currentTranslate = cursor.getString(translatedColumnIndex);
+                String currentDir = cursor.getString(dirColumnIndex);
+                int currentFav = cursor.getInt(favColumnIndex);
+                wordsList.add(new TranslatedWord(currentWord, currentTranslate, currentDir));
+            }
+            cursor.close();
+            return null;
         }
-        wAdapter.notifyDataSetChanged();
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            wAdapter.notifyDataSetChanged();
+        }
     }
 
 

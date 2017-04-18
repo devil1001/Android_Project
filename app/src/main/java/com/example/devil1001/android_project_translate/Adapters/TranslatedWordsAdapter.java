@@ -17,7 +17,7 @@ public class TranslatedWordsAdapter extends RecyclerView.Adapter<TranslatedWords
 
     private List<TranslatedWord> wordsList;
 
-    class WordViewHolder extends RecyclerView.ViewHolder {
+    static class WordViewHolder extends RecyclerView.ViewHolder {
         private TextView toTranslate, translated, direction;
 
         WordViewHolder(View view) {

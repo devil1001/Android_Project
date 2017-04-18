@@ -3,6 +3,7 @@ package com.example.devil1001.android_project_translate.Views;
 import android.app.Activity;
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -69,19 +70,17 @@ public class TranslatorFragment extends Fragment {
         ApiService api = RetroClient.getApiService();
         final String leftSpinnerDir = LanguageConverter.getInstance().convert(getActivity(), leftSpinner.getSelectedItem().toString());
         final String rightSpinnerDir = LanguageConverter.getInstance().convert(getActivity(), rightSpinner.getSelectedItem().toString());
+        btnTranslate.setClickable(false);
         Call<Answer> call = api.getMyJSON(API_KEY, word, leftSpinnerDir+"-"+rightSpinnerDir);
         call.enqueue(new Callback<Answer>() {
             @Override
             public void onResponse(Call<Answer> call, Response<Answer> response) {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                btnTranslate.setClickable(true);
                 if(response.isSuccessful()) {
                     Toast.makeText(getActivity(), "GREAT", Toast.LENGTH_SHORT).show();
                     txtTranslated.setText(response.body().getText()[0]);
-                    insertWord(word, response.body().getText()[0], leftSpinnerDir+'-'+rightSpinnerDir);
+                    new MakeTranslate(word, response.body().getText()[0], leftSpinnerDir+'-'+rightSpinnerDir).execute();
+                    //insertWord(word, response.body().getText()[0], leftSpinnerDir+'-'+rightSpinnerDir);
                 } else {
                     Toast.makeText(getActivity(), "NOT GREAT", Toast.LENGTH_SHORT).show();
                 }
@@ -89,20 +88,50 @@ public class TranslatorFragment extends Fragment {
             @Override
             public void onFailure(Call<Answer> call, Throwable t) {
                 Toast.makeText(getActivity(), "ERROR", Toast.LENGTH_SHORT).show();
+                btnTranslate.setClickable(true);
             }
         });
     }
 
-    private void insertWord(String word, String translation, String dir) {
-        SQLiteDatabase db = wordsDbHelper.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(WordsContract.WordEntry.COLUMN_WORD, word);
-        values.put(WordsContract.WordEntry.COLUMN_TRANSLATED, translation);
-        values.put(WordsContract.WordEntry.COLUMN_DIRECTION, dir);
-        values.put(WordsContract.WordEntry.COLUMN_FAVOURITE, 0);
-        long newRowId = db.insert(WordsContract.WordEntry.TABLE_NAME, null, values);
-        EventBus.getDefault().post(new NewWordTranslated(word, translation, dir));
+    private class MakeTranslate extends AsyncTask<Void, Void, Void> {
+        private String word;
+        private String translation;
+        private String dir;
+
+        public MakeTranslate(String word, String translation, String dir) {
+            this.word = word;
+            this.translation = translation;
+            this.dir = dir;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            SQLiteDatabase db = wordsDbHelper.getWritableDatabase();
+            ContentValues values = new ContentValues();
+            values.put(WordsContract.WordEntry.COLUMN_WORD, word);
+            values.put(WordsContract.WordEntry.COLUMN_TRANSLATED, translation);
+            values.put(WordsContract.WordEntry.COLUMN_DIRECTION, dir);
+            values.put(WordsContract.WordEntry.COLUMN_FAVOURITE, 0);
+            long newRowId = db.insert(WordsContract.WordEntry.TABLE_NAME, null, values);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            EventBus.getDefault().post(new NewWordTranslated(word, translation, dir));
+        }
     }
+
+//    private void insertWord(String word, String translation, String dir) {
+//        SQLiteDatabase db = wordsDbHelper.getWritableDatabase();
+//        ContentValues values = new ContentValues();
+//        values.put(WordsContract.WordEntry.COLUMN_WORD, word);
+//        values.put(WordsContract.WordEntry.COLUMN_TRANSLATED, translation);
+//        values.put(WordsContract.WordEntry.COLUMN_DIRECTION, dir);
+//        values.put(WordsContract.WordEntry.COLUMN_FAVOURITE, 0);
+//        long newRowId = db.insert(WordsContract.WordEntry.TABLE_NAME, null, values);
+//        EventBus.getDefault().post(new NewWordTranslated(word, translation, dir));
+//    }
 
 
     static class NewWordTranslated {
