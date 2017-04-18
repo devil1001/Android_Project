@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">YandexTranslator</string>
+    <string name="app_name">TpTranslator</string>
     <string name="hint_to_translate">Input text here</string>
     <string-array name="languages">
         <item>Azerbaijan</item>
