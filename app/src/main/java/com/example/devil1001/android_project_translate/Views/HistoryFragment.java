@@ -1,4 +1,4 @@
-package com.example.devil1001.android_project_translate;
+package com.example.devil1001.android_project_translate.Views;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -16,6 +16,10 @@ import android.widget.Toast;
 import com.example.devil1001.android_project_translate.Adapters.TranslatedWordsAdapter;
 import com.example.devil1001.android_project_translate.Data.WordsContract;
 import com.example.devil1001.android_project_translate.Data.WordsDbHelper;
+import com.example.devil1001.android_project_translate.R;
+import com.example.devil1001.android_project_translate.TranslatedWord;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,13 +27,14 @@ import java.util.List;
  * Created by devil1001 on 17.04.17.
  */
 
-public class HistoryFragment extends Fragment implements TranslatorFragment.NewData {
+public class HistoryFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private TranslatedWordsAdapter wAdapter;
     private List<TranslatedWord> wordsList = new ArrayList<>();
     private WordsDbHelper wordsDbHelper;
     private Button btn;
+    private RecyclerView.LayoutManager mLayoutManager;
 
     @Nullable
     @Override
@@ -42,7 +47,7 @@ public class HistoryFragment extends Fragment implements TranslatorFragment.NewD
         super.onViewCreated(view, savedInstanceState);
         recyclerView = (RecyclerView) getActivity().findViewById(R.id.recycler_view);
         wAdapter = new TranslatedWordsAdapter(wordsList);
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getContext());
+        mLayoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(mLayoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
         recyclerView.setAdapter(wAdapter);
@@ -66,7 +71,7 @@ public class HistoryFragment extends Fragment implements TranslatorFragment.NewD
                 null,                  // значения для условия WHERE
                 null,                  // Don't group the rows
                 null,                  // Don't filter by row groups
-                null);                   // порядок сортировки
+                WordsContract.WordEntry._ID + " DESC");                   // порядок сортировки
 
         int idColumnIndex = cursor.getColumnIndex(WordsContract.WordEntry._ID);
         int wordColumnIndex = cursor.getColumnIndex(WordsContract.WordEntry.COLUMN_WORD);
@@ -85,8 +90,23 @@ public class HistoryFragment extends Fragment implements TranslatorFragment.NewD
         wAdapter.notifyDataSetChanged();
     }
 
+
+    @Subscribe()
+    public void onNewWordTranslated(TranslatorFragment.NewWordTranslated event) {
+        wordsList.add(0, new TranslatedWord(event.word, event.translation, event.dir));
+        wAdapter.notifyItemInserted(0);
+        mLayoutManager.scrollToPosition(0);
+    }
+
     @Override
-    public void updateView() {
-        showDB();
+    public void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
     }
 }

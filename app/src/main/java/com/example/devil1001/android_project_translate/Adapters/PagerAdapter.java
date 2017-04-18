@@ -3,8 +3,8 @@ package com.example.devil1001.android_project_translate.Adapters;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import com.example.devil1001.android_project_translate.HistoryFragment;
-import com.example.devil1001.android_project_translate.TranslatorFragment;
+import com.example.devil1001.android_project_translate.Views.HistoryFragment;
+import com.example.devil1001.android_project_translate.Views.TranslatorFragment;
 
 /**
  * Created by devil1001 on 17.04.17.

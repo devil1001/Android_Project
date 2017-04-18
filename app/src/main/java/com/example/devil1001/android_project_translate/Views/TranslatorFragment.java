@@ -1,5 +1,6 @@
-package com.example.devil1001.android_project_translate;
+package com.example.devil1001.android_project_translate.Views;
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -13,9 +14,14 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.toptoche.searchablespinnerlibrary.SearchableSpinner;
+import com.example.devil1001.android_project_translate.Answer;
+import com.example.devil1001.android_project_translate.ApiService;
 import com.example.devil1001.android_project_translate.Data.WordsContract;
 import com.example.devil1001.android_project_translate.Data.WordsDbHelper;
 import com.example.devil1001.android_project_translate.Helpers.LanguageConverter;
+import com.example.devil1001.android_project_translate.R;
+import com.example.devil1001.android_project_translate.RetroClient;
+import org.greenrobot.eventbus.EventBus;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -34,6 +40,7 @@ public class TranslatorFragment extends Fragment {
     SearchableSpinner leftSpinner;
     SearchableSpinner rightSpinner;
     WordsDbHelper wordsDbHelper;
+
 
     @Nullable
     @Override
@@ -66,6 +73,11 @@ public class TranslatorFragment extends Fragment {
         call.enqueue(new Callback<Answer>() {
             @Override
             public void onResponse(Call<Answer> call, Response<Answer> response) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
                 if(response.isSuccessful()) {
                     Toast.makeText(getActivity(), "GREAT", Toast.LENGTH_SHORT).show();
                     txtTranslated.setText(response.body().getText()[0]);
@@ -89,10 +101,19 @@ public class TranslatorFragment extends Fragment {
         values.put(WordsContract.WordEntry.COLUMN_DIRECTION, dir);
         values.put(WordsContract.WordEntry.COLUMN_FAVOURITE, 0);
         long newRowId = db.insert(WordsContract.WordEntry.TABLE_NAME, null, values);
-        //updateView();
+        EventBus.getDefault().post(new NewWordTranslated(word, translation, dir));
     }
 
-    interface NewData {
-        void updateView();
+
+    static class NewWordTranslated {
+        String word;
+        String translation;
+        String dir;
+
+        NewWordTranslated(String word, String translation, String dir) {
+            this.word = word;
+            this.translation = translation;
+            this.dir = dir;
+        }
     }
 }
